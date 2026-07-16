@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Архив Столпа Звука | Квартал Красных Фонарей</title>
+    <!-- Подключаем стильные шрифты и иконки (добавили Philosopher для утонченного логотипа) -->
+    <link href="https://fonts.googleapis.com/css2?family=Philosopher:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@300;400;600;800;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        :root {
+            --crimson: #e60026;
+            --crimson-glow: rgba(230, 0, 38, 0.45);
+            --gold: #ffd700;
+            --gold-glow: rgba(255, 215, 0, 0.4);
+            --dark-bg: #070308;
+            --card-bg: rgba(18, 9, 15, 0.9);
+            --border-glow: rgba(230, 0, 38, 0.15);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Интерактивный бэкграунд */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, rgba(38, 10, 18, 0.55) 0%, rgba(7, 3, 8, 0.98) 100%);
+            pointer-events: none;
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--crimson), var(--gold));
+            border-radius: 5px;
+        }
+
+        /* Все «страницы» скрыты по умолчанию */
+        .page-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+            flex-grow: 1;
+        }
+
+        /* Класс для отображения активной страницы */
+        .page-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Шапка сайта */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: rgba(7, 3, 8, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--crimson);
+            box-shadow: 0 5px 25px rgba(230, 0, 38, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .kanji-logo {
+            font-size: 2.8rem;
+            font-weight: 900;
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(45deg, var(--crimson), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px var(--crimson-glow));
+            animation: pulse-logo 2s infinite alternate;
+        }
+
+        @keyframes pulse-logo {
+            0% { transform: scale(1) rotate(-5deg); }
+            100% { transform: scale(1.08) rotate(5deg); }
+        }
+
+        .logo-text h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--crimson-glow);
+            font-family: 'Philosopher', sans-serif; /* Утонченный и премиальный шрифт */
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            color: var(--gold);
+            text-shadow: 0 0 5px var(--gold-glow);
+            letter-spacing: 1px;
+            font-family: 'Philosopher', sans-serif;
+            font-style: italic; /* Легкий наклон для элегантности */
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        nav a.nav-link {
+            text-decoration: none;
+            color: #ccc;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+            cursor: pointer;
+        }
+
+        nav a.nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--crimson);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        /* Подсветка активной страницы в меню */
+        nav a.nav-link.active-tab {
+            color: var(--crimson);
+            text-shadow: 0 0 8px var(--crimson-glow);
+        }
+
+        nav a.nav-link.active-tab::after {
+            width: 100%;
+        }
+
+        /* Кнопка Устава */
+        .btn-ustav {
+            text-decoration: none;
+            color: #fff;
+            background: linear-gradient(45deg, var(--crimson), #900010);
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px var(--crimson-glow);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-block;
+            border: 1px solid var(--gold);
+        }
+
+        .btn-ustav:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 0 0 25px var(--crimson), 0 0 10px var(--gold);
+        }
+
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .banner-container {
+            max-width: 1100px;
+            width: 100%;
+            margin-bottom: 40px;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Рамка с неоновым свечением для картинки */
+        .banner-frame {
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid var(--crimson);
+            box-shadow: 0 0 35px rgba(230, 0, 38, 0.45), 
+                        0 0 65px rgba(255, 215, 0, 0.25),
+                        inset 0 0 20px rgba(0,0,0,0.8);
+            position: relative;
+            background: #000;
+        }
+
+        .banner-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .banner-container:hover .banner-img {
+            transform: scale(1.02);
+        }
+
+        /* Свечение по углам баннера */
+        .banner-container::before {
+            content: '🏮';
+            position: absolute;
+            font-size: 2.5rem;
+            top: -20px;
+            left: -20px;
+            text-shadow: 0 0 15px var(--crimson);
+            animation: swing 3s ease-in-out infinite alternate;
+        }
+
+        .banner-container::after {
+            content: '🏮';
+            position: absolute;
+            font-size: 2.5rem;
+            bottom: -20px;
+            right: -20px;
+            text-shadow: 0 0 15px var(--crimson);
+            animation: swing 3.5s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes swing {
+            0% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+
+        .quick-nav-pills {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pill-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+
+        .pill-btn i {
+            color: var(--crimson);
+            transition: transform 0.3s ease;
+        }
+
+        .pill-btn:hover {
+            background: rgba(230, 0, 38, 0.15);
+            border-color: var(--crimson);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px var(--crimson-glow);
+        }
+
+        .pill-btn:hover i {
+            transform: scale(1.2) rotate(15deg);
+        }
+
+        section {
+            padding: 60px 20px 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.6rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 50px;
+            position: relative;
+            background: linear-gradient(45deg, #fff, var(--crimson));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(230, 0, 38, 0.3);
+        }
+
+        .section-title::after {
+            content: '🏮  🏮  🏮';
+            display: block;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            letter-spacing: 8px;
+            text-shadow: 0 0 10px var(--crimson);
+        }
+
+        /* Сетка для раздела "Для понимания" */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(230, 0, 38, 0.15);
+            padding: 35px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            border-color: var(--crimson);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(230, 0, 38, 0.25);
+        }
+
+        .info-card h3 {
+            font-size: 1.4rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(230, 0, 38, 0.2);
+            padding-bottom: 12px;
+        }
+
+        .info-card h3 i {
+            color: var(--crimson);
+        }
+
+        .info-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .info-card li {
+            position: relative;
+            padding-left: 25px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        .info-card li::before {
+            content: '🏮';
+            position: absolute;
+            left: 0;
+            font-size: 0.9rem;
+        }
+
+        .hierarchy-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            position: relative;
+            padding: 40px 0;
+        }
+
+        .hierarchy-card {
+            background: var(--card-bg);
+            border: 2px solid var(--crimson);
+            border-radius: 20px;
+            padding: 30px 60px;
+            text-align: center;
+            box-shadow: 0 0 25px var(--crimson-glow);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .hierarchy-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 35px var(--crimson);
+        }
+
+        .hierarchy-card h4 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #fff, var(--crimson));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hierarchy-card p {
+            color: var(--gold);
+            font-size: 1rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 5px;
+            letter-spacing: 3px;
+        }
+
+        /* Стрелка вниз */
+        .down-arrow {
+            font-size: 2.2rem;
+            color: var(--crimson);
+            animation: bounce-arrow 2s infinite;
+            filter: drop-shadow(0 0 5px var(--crimson));
+        }
+
+        @keyframes bounce-arrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* Сетка средних и младших рангов */
+        .hierarchy-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .sub-rank-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(230, 0, 38, 0.25);
+            border-radius: 16px;
+            padding: 25px;
+            min-width: 280px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .sub-rank-card:hover {
+            border-color: var(--crimson);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--crimson-glow);
+        }
+
+        .sub-rank-card.middle:hover {
+            border-color: var(--gold);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.25);
+        }
+
+        .sub-rank-card h5 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .sub-rank-card p {
+            color: #aaa;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--crimson), var(--gold), var(--crimson));
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+
+        .kd-badge {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .kd-badge.warning {
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 15px var(--gold-glow);
+        }
+
+        .kd-badge.danger {
+            border-color: var(--crimson);
+            color: var(--crimson);
+            box-shadow: 0 0 15px var(--crimson-glow);
+        }
+
+        .rank-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(230, 0, 38, 0.15);
+            padding: 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .rank-card:hover {
+            border-color: var(--crimson);
+            box-shadow: 0 15px 35px var(--crimson-glow);
+        }
+
+        .rank-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 0;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* Состояние открытой карточки */
+        .rank-card.expanded {
+            padding-bottom: 30px;
+        }
+
+        .rank-card.expanded .rank-header {
+            margin-bottom: 20px;
+            border-bottom-color: rgba(230, 0, 38, 0.15);
+            padding-bottom: 15px;
+        }
+
+        .emoji {
+            font-size: 1.8rem;
+        }
+
+        .rank-header h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .arrow {
+            color: var(--crimson);
+        }
+
+        .moto {
+            font-size: 0.75rem;
+            background: var(--crimson);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px var(--crimson-glow);
+        }
+
+        /* Динамическая иконка стрелочки */
+        .toggle-icon {
+            font-size: 1.2rem;
+            color: var(--crimson);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 0 5px var(--crimson-glow));
+        }
+
+        /* Выравнивание иконки и мото в заголовке */
+        .toggle-icon {
+            margin-left: auto;
+        }
+        
+        .moto {
+            margin-left: auto;
+        }
+
+        .moto + .toggle-icon {
+            margin-left: 15px;
+        }
+
+        .rank-card.expanded .toggle-icon {
+            transform: rotate(180deg);
+            color: var(--gold);
+            filter: drop-shadow(0 0 5px var(--gold-glow));
+        }
+
+        .rank-card.special {
+            border: 1px dashed var(--crimson);
+        }
+
+        .rank-card.gold-border {
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        .gold-text {
+            background: linear-gradient(45deg, #fff, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Анимация плавного выпадения списка требований */
+        .requirements {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        .rank-card.expanded .requirements {
+            max-height: 600px;
+            opacity: 1;
+        }
+
+        .requirements li {
+            position: relative;
+            padding-left: 25px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #e0e0e0;
+        }
+
+        .requirements li::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--gold);
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .requirements li:hover::before {
+            transform: rotate(180deg) scale(1.3);
+            color: var(--crimson);
+        }
+
+        .requirements i {
+            color: #aaa;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 3px;
+        }
+
+        /* Подвал */
+        footer {
+            text-align: center;
+            padding: 50px 20px;
+            border-top: 1px solid rgba(230, 0, 38, 0.15);
+            background: rgba(7, 3, 8, 0.95);
+            color: #777;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-top: auto;
+        }
+
+        /* Адаптивность для мобильных телефонов */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+
+            .hero {
+                padding: 30px 15px;
+            }
+
+            .hero-content h2 {
+                font-size: 2.2rem;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+            
+            .kd-badge {
+                align-self: flex-start;
+                margin-left: 10px;
+            }
+            
+            .rank-card {
+                margin-left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Фоновый холст с анимированными нотами, фонарями и сакурой -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="bg-overlay"></div>
+
+    <header>
+        <div class="logo">
+            <span class="kanji-logo">遊</span>
+            <div class="logo-text">
+                <h1>ДЫХАНИЕ ЗВУКА</h1>
+                <p>Самое блестящее дыхание</p>
+            </div>
+        </div>
+        <nav>
+            <a onclick="navigateTo('hero')" class="nav-link active-tab" id="nav-hero">Главная</a>
+            <a onclick="navigateTo('understanding')" class="nav-link" id="nav-understanding">Понимание</a>
+            <a onclick="navigateTo('hierarchy')" class="nav-link" id="nav-hierarchy">Иерархия</a>
+            <a onclick="navigateTo('ranks')" class="nav-link" id="nav-ranks">Система повышений</a>
+            <a href="https://project23303446.tilda.ws/page127431166.html" target="_blank" class="btn-ustav"><i class="fa-solid fa-scroll"></i> УСТАВ</a>
+        </nav>
+    </header>
+
+    <main class="page-content active" id="page-hero">
+        <div class="hero">
+            <div class="banner-container">
+                <div class="banner-frame">
+                    <!-- Ссылка на локальный файл image_2026-07-16_21-34-31.jpg -->
+                    <img src="image_2026-07-16_21-34-31.jpg" alt="Архив Столпа Звука - Тенген Узуй" class="banner-img">
+                </div>
+            </div>
+            
+            <div class="quick-nav-pills">
+                <a onclick="navigateTo('understanding')" class="pill-btn"><i class="fa-solid fa-book-open"></i> Для понимания</a>
+                <a onclick="navigateTo('hierarchy')" class="pill-btn"><i class="fa-solid fa-crown"></i> Иерархия</a>
+                <a onclick="navigateTo('ranks')" class="pill-btn"><i class="fa-solid fa-ranking-star"></i> Система повышений</a>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-content" id="page-understanding">
+        <section>
+            <h2 class="section-title">ДЛЯ ПОНИМАНИЯ</h2>
+            <div class="info-grid">
+                
+                <!-- Блок I: Общие положения -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-circle-info"></i> I. Общие положения</h3>
+                    <ul>
+                        <li><strong>1.1.</strong> Отряд Дыхания Звука создан для защиты людей от демонов, используя взрывные техники, звуковые ловушки и высокую мобильность шиноби.</li>
+                        <li><strong>1.2.</strong> Каждый член отряда обязан знать и соблюдать основной закон истребителей демонов, являющийся высшим руководством для всех охотников.</li>
+                        <li><strong>1.3.</strong> В основе деятельности отряда лежат принципы блеска, дисциплины и безупречного исполнения каждой миссии. Посредственность не допускается.</li>
+                        <li><strong>1.4.</strong> Главной ценностью отряда является способность действовать ярко, эффективно и слаженно, превращая бой в зрелище, а победу — в неизбежность.</li>
+                        <li><strong>1.5.</strong> Командир отряда — Тенген Узуй, обладает правом окончательного решения в спорных ситуациях.</li>
+                    </ul>
+                </div>
+
+                <!-- Блок II: Обязанности -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-shield-halved"></i> II. Обязанности членов отряда</h3>
+                    <ul>
+                        <li><strong>2.1. Подготовка и тренировки:</strong>
+                            <i>Совершенствовать технику Дыхания Звука до автоматизма.</i>
+                            <i>Изучать акустику местности и способы использования звука для разведки и маскировки.</i>
+                            <i>Регулярно тренировать чувство ритма и координацию движений.</i>
+                            <i>Поддерживать физическую форму на уровне, позволяющем выполнять акробатические элементы в бою.</i>
+                            <i>Осваивать обращение со взрывчатыми составами, дымовыми шашками и другими спецсредствами.</i>
+                            <i>Проходить обязательные проверки на устойчивость к ядам под присмотром медиков Корпуса.</i>
+                        </li>
+                        <li><strong>2.2. Поведение в бою:</strong>
+                            <i>Использовать скорость, взрывную мощь и звуковые отвлекающие манёвры для подавления демонов.</i>
+                            <i>Не вступать в бой без необходимости или уверенности в победе. Если уверенности нет — создай её!</i>
+                            <i>Минимизировать потери среди гражданских и товарищей. Жизнь союзников — ответственность каждого.</i>
+                            <i>Действовать эффектно, чтобы поднимать боевой дух союзников и деморализовать противника.</i>
+                            <i>В критической ситуации использовать взрывчатку для создания коридора отступления или засады.</i>
+                        </li>
+                        <li><strong>2.3. Взаимодействие с товарищами:</strong>
+                            <i>Соблюдать субординацию и уважать решения руководства. Вопросы по тактике обсуждать до боя, а не во время.</i>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Блок III: Экипировка -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-gem"></i> III. Требования к внешнему виду и экипировке</h3>
+                    <ul>
+                        <li><strong>3.1.</strong> Форма должна быть чистой и опрятной. Пятна крови допустимы только боевые, но после боя форма приводится в порядок.</li>
+                        <li><strong>3.2.</strong> Клинок должен быть идеально наточен, цепи и противовесы смазаны и отрегулированы.</li>
+                        <li><strong>3.3.</strong> Обязательно носить яркие или заметные аксессуары (повязки, банты, браслеты) в качестве отличительного знака отряда — это не слабость, это блестящая сила.</li>
+                        <li><strong>3.4.</strong> Запрещается появляться на построении и мероприятиях в грязной или порванной одежде без уважительной причины.</li>
+                    </ul>
+                </div>
+
+                <!-- Блок IV: Права -->
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-scale-balanced"></i> IV. Права членов отряда</h3>
+                    <ul>
+                        <li><strong>4.1.</strong> Каждый член отряда имеет право на уважительное отношение со стороны товарищей и руководства.</li>
+                        <li><strong>4.2.</strong> Каждый член отряда имеет право на получение новых знаний Дыхания Звука по мере повышения ранга.</li>
+                        <li><strong>4.3.</strong> Каждый член отряда имеет право на медицинскую помощь и восстановление после миссий, включая проверки на последствия от ядов и контузий.</li>
+                        <li><strong>4.4.</strong> Каждый член отряда имеет право подать рапорт Тенгену в случае несогласия с решением вышестоящего истребителя.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <div class="page-content" id="page-hierarchy">
+        <section>
+            <h2 class="section-title">ИЕРАРХИЯ ОТРЯДА</h2>
+            <div class="hierarchy-container">
+                
+                <!-- Столп -->
+                <div class="hierarchy-card">
+                    <h4>ТЕНГЕН УЗУЙ</h4>
+                    <p>Столп Звука (Командир)</p>
+                </div>
+
+                <div class="down-arrow"><i class="fa-solid fa-angles-down"></i></div>
+
+                <!-- Старшие ранги -->
+                <div class="hierarchy-grid">
+                    <div class="sub-rank-card" style="border-color: var(--crimson); box-shadow: 0 5px 20px var(--crimson-glow);">
+                        <h5>Киноэ</h5>
+                        <p>Элита шиноби</p>
+                    </div>
+                    <div class="sub-rank-card" style="border-color: var(--crimson); box-shadow: 0 5px 20px var(--crimson-glow);">
+                        <h5>Киното</h5>
+                        <p>Старший исполнитель</p>
+                    </div>
+                    <div class="sub-rank-card" style="border-color: var(--crimson); box-shadow: 0 5px 20px var(--crimson-glow);">
+                        <h5>Хиноэ</h5>
+                        <p>Мастер звуковых волн</p>
+                    </div>
+                </div>
+
+                <div class="down-arrow"><i class="fa-solid fa-angles-down"></i></div>
+
+                <!-- Средние ранги -->
+                <div class="hierarchy-grid">
+                    <div class="sub-rank-card middle">
+                        <h5>Хиното</h5>
+                        <p>Опытный охотник</p>
+                    </div>
+                    <div class="sub-rank-card middle">
+                        <h5>Цучиноэ</h5>
+                        <p>Адепт взрывов</p>
+                    </div>
+                    <div class="sub-rank-card middle">
+                        <h5>Цучиното</h5>
+                        <p>Страж передовой</p>
+                    </div>
+                </div>
+
+                <div class="down-arrow"><i class="fa-solid fa-angles-down"></i></div>
+
+                <!-- Младшие ранги -->
+                <div class="hierarchy-grid">
+                    <div class="sub-rank-card">
+                        <h5>Каноэ</h5>
+                        <p>Акробат Квартала</p>
+                    </div>
+                    <div class="sub-rank-card">
+                        <h5>Каното</h5>
+                        <p>Начинающий взрывотехник</p>
+                    </div>
+                    <div class="sub-rank-card">
+                        <h5>Мидзуноэ</h5>
+                        <p>Ученик шиноби</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <div class="page-content" id="page-ranks">
+        <section>
+            <h2 class="section-title">СИСТЕМА ПОВЫШЕНИЙ</h2>
+            <div class="timeline">
+
+                <!-- КД 1 -->
+                <div class="kd-badge">КД между повышениями: 1 день</div>
+
+                <!-- Мидзуното → Мидзуное -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Мидзуното <span class="arrow">→</span> Мидзуное</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Пройти проверку на знание устава истребителей и отряда.</li>
+                        <li>Убить своего первого демона.</li>
+                        <li>Захватить 1 точку на карте.</li>
+                    </ul>
+                </div>
+
+                <!-- Мидзуное → Каното -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Мидзуное <span class="arrow">→</span> Каното</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Убить 1 демона.</li>
+                        <li>Захватить 1 точку.</li>
+                        <li>Выполнить поручение от инструктора.</li>
+                        <li>Пройти проверку на выносливость у Инструктора Звука или выше <i>(мин. 10 РП-действий, 1 удачный /try на устойчивость на ногах/выдыхание)</i>.</li>
+                    </ul>
+                </div>
+
+                <!-- Каното → Каное -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Каното <span class="arrow">→</span> Каное</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Убить 3 демонов.</li>
+                        <li>Захватить 2 точки, принять участие в 1 мероприятии и показать себя там блестяще.</li>
+                        <li>Познать технику постоянной концентрации дыхания <i>(мин. 20 РП-действий, 2 удачных /try подряд на поддержание ритма дыхания)</i>.</li>
+                        <li>Пройти проверку на чувство ритма у Инструктора Звука или выше <i>(мин. 15 РП-действий, 2 удачных /try)</i>.</li>
+                        <li>Прослушать лекцию по созданию самодельных бомбочек.</li>
+                    </ul>
+                </div>
+
+                <!-- КД 2 -->
+                <div class="kd-badge warning">КД между повышениями: 2 дня</div>
+
+                <!-- Каное → Тсучиното -->
+                <div class="rank-card special">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Каное <span class="arrow">→</span> Тсучиното</h3>
+                        <span class="moto">«Громкость нарастает»</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Убить 5 демонов.</li>
+                        <li>Провести спарринг с истребителем своего ранга или выше (рп файт).</li>
+                        <li>Научиться концентрировать дыхание на 5+ минут для поддержания звукового эха <i>(10 РП-действий, 2 удачных /try подряд)</i>.</li>
+                        <li>Полная разборка и сборка своего клинка (особенно цепей и противовесов. Требуется, чтобы оружие сияло и было идеально сбалансировано) <i>(15 РП-действий, 2 удачных /try на ловкость рук)</i>.</li>
+                        <li>Захватить 2 точки, поучаствовать в 1 мероприятии.</li>
+                        <li>Сделать самодельную взрывчатку против демонов <i>(мин. 10 отыгровок, 1 удачный /try на взрыв)</i>.</li>
+                        <li>Заминировать (бутафорскими зарядами по рп) периметр и проверить ловушку <i>(20 РП-действий, 1 удачный /try на работу ловушки)</i>.</li>
+                    </ul>
+                </div>
+
+                <!-- Тсучиното → Тсучиное -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Тсучиното <span class="arrow">→</span> Тсучиное</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Пройти лекцию о ядах и взрывчатке (вместо звуковых ловушек).</li>
+                        <li>Пройти проверку на устойчивость к ядам у медиков Корпуса у медиков Корпуса <i>(мин. 10 РП-действий, 1 удачный /try на сопротивление) с последующим осмотром</i>.</li>
+                        <li>Выполнить поручение от Тенгена Узуя или его жён.</li>
+                        <li>Убить 3 демона, захватить 3 точки, поучаствовать в 1 мероприятии.</li>
+                        <li>Выполнить задание от Инструктора Звука на маскировку в толпе <i>(мин. 15 РП-действий, 2 удачных /try на отвлечение внимания и незаметное перемещение среди людей)</i>.</li>
+                        <li>Сделать декоративный аксессуар (повязку, браслет) с символикой звука и подарить Тенгену или его жёнам <i>(мин. 10 отыгровок, 1 удачный /try на качество)</i>.</li>
+                    </ul>
+                </div>
+
+                <!-- Тсучиное → Хиното -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Тсучиное <span class="arrow">→</span> Хиното</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li><strong>Тренировочный бой с Тенгеном Узуем.</strong></li>
+                        <li>Выполнить поручение от Тенгена.</li>
+                        <li>Убить 10 демонов, захватить 4 точки, поучаствовать в 1 мероприятии.</li>
+                        <li>Устроить блестящие шоу во время боя с другим истребителем (рп файта) <i>(мин. 20 РП-действий, 2 удачных /try на эффектность и зрелищность, чтобы ослепить противника)</i>.</li>
+                        <li>Сделать яркую повязку или бант и подарить Кёджуро Ренгоку <i>(мин. 15 РП-действий, 1 удачный /try на красоту, Ренгоку должен принять подарок)</i>.</li>
+                    </ul>
+                </div>
+
+                <!-- КД 3 -->
+                <div class="kd-badge danger">КД между повышениями: 3 дня</div>
+
+                <!-- Хиното → Хиное -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Хиното <span class="arrow">→</span> Хиное</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Выполнить поручение от Тенгена (добыть серу из active вулкана или другой опасный рейд).</li>
+                        <li>Убить 10 демонов, захватить 5 точек, поучаствовать в 1 мероприятии.</li>
+                        <li>Спарринг с Инструктором Звука с применением отвлекающих манёвров с использованием взрывчатки и криков <i>(мин. 20 РП-действий, 2 удачных /try на планирование и исполнение так, чтобы Инструктор не понял, откуда удар)</i>.</li>
+                        <li>Устроить Тенгену блестящие мясное шоу с огнем <i>(мин. 15 РП-действий, 1 удачный /try на кулинарию, упор на презентацию и зрелищность)</i>.</li>
+                        <li>Дуэль с 5 разными истребителями своего ранга и выше (5 побед, каждая в отдельном РП-бою).</li>
+                    </ul>
+                </div>
+
+                <!-- Хиное → Киното -->
+                <div class="rank-card">
+                    <div class="rank-header">
+                        <span class="emoji">🥁</span>
+                        <h3>Хиное <span class="arrow">→</span> Киното</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li><strong>Участвовать в битве с Низшей Луной и выжить.</strong></li>
+                        <li>Спарринг со столпом (любым).</li>
+                        <li>Полный уход за формой и доспехами: стирка, починка, чистка до блеска <i>(15 РП-действий, без /try, просто описание)</i>.</li>
+                        <li>Убить 10 демонов, захватить 7 точек, поучаствовать в 1 мероприятии.</li>
+                        <li>Уничтожить крупный объект (скалу, крупный камень и тд) с помощью звуковой взрывной волны <i>(мин. 20 РП-действий, 2 удачных /try на взрыв и разрушение)</i>.</li>
+                        <li>Отточить Похоронный звон Авичи до автоматизма <i>(мин. 15 отыгровой, 2 удачный /try подряд на правильное выполнение)</i>.</li>
+                    </ul>
+                </div>
+
+                <!-- Киното → Киное -->
+                <div class="rank-card gold-border">
+                    <div class="rank-header">
+                        <span class="emoji">💎</span>
+                        <h3 class="gold-text">Киното <span class="arrow">→</span> Киное</h3>
+                        <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                    </div>
+                    <ul class="requirements">
+                        <li>Выполнить поручение от любого столпа (на выбор).</li>
+                        <li>Получить рекомендацию не ниже II ранга.</li>
+                        <li>Выполнить личное поручение от Тенгена Узуя.</li>
+                        <li>Убить 10 демонов, захватить 10 точек, поучаствовать в 1 мероприятии.</li>
+                        <li>Пройти финальную проверку на устойчивость к ядам у медиков Корпуса, теперь уже с сильным ядом, под присмотром Шинобу <i>(мин. 15 РП-действий, 2 удачных /try подряд на сопротивление, после чего обязательный осмотр и восстановление)</i>.</li>
+                        <li>Получить информацию про 6 высших лун и доложить лично Тенгену.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>© 2026 Корпус Истребителей Демонов — Блистательный Квартал Красных Фонарей. Сделано с любовью к пафосу!</p>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Подстраиваем размеры холста
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Оставляем только красные китайские фонарики
+        const symbols = ['🏮'];
+        const particles = [];
+
+        class ElementParticle {
+            constructor() {
+                this.reset(true);
+            }
+
+            reset(init = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = init ? Math.random() * canvas.height : -60;
+                this.size = Math.random() * 26 + 18; // Хорошо видимый размер
+                this.speedY = Math.random() * 0.7 + 0.3; // Плавное скольжение вниз
+                this.speedX = (Math.random() - 0.5) * 0.3; // Смещение в бока
+                this.char = symbols[0];
+                this.opacity = Math.random() * 0.5 + 0.25; // Свечение
+                this.angle = Math.random() * Math.PI * 2;
+                this.angleSpeed = (Math.random() - 0.5) * 0.01; // Мягкое покачивание на веревочке
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += Math.sin(this.angle) * 0.4 + this.speedX;
+                this.angle += this.angleSpeed;
+
+                if (this.y > canvas.height + 60 || this.x < -60 || this.x > canvas.width + 60) {
+                    this.reset(false);
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(Math.sin(this.angle) * 0.15); 
+                ctx.globalAlpha = this.opacity;
+                
+                // Красный неоновый свет вокруг фонариков
+                ctx.shadowColor = '#e60026';
+                ctx.shadowBlur = 15;
+                
+                ctx.font = `${this.size}px 'Noto Sans JP', sans-serif`;
+                ctx.fillStyle = '#fff';
+                ctx.fillText(this.char, -this.size / 2, 0);
+                ctx.restore();
+            }
+        }
+
+        // Создаем пул элементов
+        const particleCount = 45;
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new ElementParticle());
+        }
+
+        // Запуск бесконечного цикла анимации фона
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function navigateTo(pageId) {
+            // Находим все страницы и вкладки
+            const pages = document.querySelectorAll('.page-content');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            // 1. Скрываем все страницы
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 2. Убираем активные классы со всех ссылок хедера
+            navLinks.forEach(link => {
+                link.classList.remove('active-tab');
+            });
+
+            // 3. Активируем нужную страницу
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+
+            // 4. Подсвечиваем соответствующую кнопку в меню
+            const targetLink = document.getElementById(`nav-${pageId}`);
+            if (targetLink) {
+                targetLink.classList.add('active-tab');
+            }
+
+            // Прокручиваем на самый верх при переключении "страницы"
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.onload = function() {
+            animate();
+            
+            // Если в ссылке уже есть хэш (например #ranks), автоматически открываем нужную вкладку
+            const hash = window.location.hash.substring(1);
+            if (hash && ['hero', 'understanding', 'hierarchy', 'ranks'].includes(hash)) {
+                navigateTo(hash);
+            }
+
+            // Добавляем обработчик клика для раскрытия требований в карточках рангов
+            document.querySelectorAll('.rank-card').forEach(card => {
+                const header = card.querySelector('.rank-header');
+                header.addEventListener('click', () => {
+                    card.classList.toggle('expanded');
+                });
+            });
+        };
+    </script>
+</body>
+</html>
